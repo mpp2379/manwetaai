@@ -14,7 +14,7 @@ variables:
 
   # Docker Image
   imageRepository: 'manwetaai:v1'
-  imageTag: '$(Build.BuildId)'
+  imageTag: 'latest'
 
   # Azure Web App
   webAppName: 'manwetaai'
