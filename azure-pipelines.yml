@@ -20,7 +20,7 @@ variables:
   webAppName: 'manwetaai'
 
   # Azure DevOps Service Connection
-  azureServiceConnection: 'azuresc'
+  azureServiceConnection: 'manwetaaisc'
 
 stages:
 
