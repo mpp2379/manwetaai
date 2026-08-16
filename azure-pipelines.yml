@@ -1,5 +1,5 @@
 trigger:
-- main
+- develop
 
 name: $(Date:yyyyMMdd)$(Rev:.r)
 
