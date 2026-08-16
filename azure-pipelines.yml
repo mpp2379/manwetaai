@@ -13,7 +13,7 @@ variables:
   acrLoginServer: 'manwetaaicr.azurecr.io'
 
   # Docker Image
-  imageRepository: 'manwetaai:v1'
+  imageRepository: 'manwetaai'
   imageTag: '$(Build.BuildId)'
 
   # Azure Web App
