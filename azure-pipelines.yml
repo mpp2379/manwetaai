@@ -17,7 +17,7 @@ variables:
   imageTag: 'latest'
 
   # Azure Web App
-  webAppName: 'manwetaai'
+  webAppName: 'manwetaaiwebapp'
 
   # Azure DevOps Service Connection
   azureServiceConnection: 'manwetaaisc'
