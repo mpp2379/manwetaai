@@ -9,15 +9,15 @@ pool:
 variables:
 
   # Azure Container Registry
-  acrName: 'manoj122'
-  acrLoginServer: 'manoj122.azurecr.io'
+  acrName: 'manwetaaicr'
+  acrLoginServer: 'manwetaaicr.azurecr.io'
 
   # Docker Image
-  imageRepository: 'comfyui-app'
+  imageRepository: 'manwetaai:v1'
   imageTag: '$(Build.BuildId)'
 
   # Azure Web App
-  webAppName: 'addition-app-manoj'
+  webAppName: 'manwetaai'
 
   # Azure DevOps Service Connection
   azureServiceConnection: 'azuresc'
