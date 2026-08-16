@@ -1,0 +1,102 @@
+trigger:
+- main
+
+name: $(Date:yyyyMMdd)$(Rev:.r)
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+
+  # Azure Container Registry
+  acrName: 'manoj122'
+  acrLoginServer: 'manoj122.azurecr.io'
+
+  # Docker Image
+  imageRepository: 'comfyui-app'
+  imageTag: '$(Build.BuildId)'
+
+  # Azure Web App
+  webAppName: 'addition-app-manoj'
+
+  # Azure DevOps Service Connection
+  azureServiceConnection: 'azuresc'
+
+stages:
+
+# ==================================================
+# Stage 1 - Build & Push Docker Image
+# ==================================================
+
+- stage: BuildAndPush
+  displayName: "Build and Push Docker Image"
+
+  jobs:
+
+  - job: BuildPush
+    displayName: "Build and Push"
+
+    steps:
+
+    - checkout: self
+
+    - script: |
+        echo "Repository Contents"
+        pwd
+        ls -la
+      displayName: "Verify Repository"
+
+    - script: |
+        docker --version
+      displayName: "Verify Docker"
+
+    - script: |
+        docker build \
+          -t $(imageRepository):$(imageTag) \
+          .
+      displayName: "Build Docker Image"
+
+    - task: AzureCLI@2
+      displayName: "Login to Azure"
+
+      inputs:
+        azureSubscription: '$(azureServiceConnection)'
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
+          az acr login --name $(acrName)
+
+    - script: |
+        docker tag \
+          $(imageRepository):$(imageTag) \
+          $(acrLoginServer)/$(imageRepository):$(imageTag)
+      displayName: "Tag Image"
+
+    - script: |
+        docker push \
+          $(acrLoginServer)/$(imageRepository):$(imageTag)
+      displayName: "Push Image"
+
+# ==================================================
+# Stage 2 - Deploy
+# ==================================================
+
+- stage: Deploy
+  displayName: "Deploy to Azure Web App"
+
+  dependsOn: BuildAndPush
+
+  jobs:
+
+  - job: DeployContainer
+    displayName: "Deploy"
+
+    steps:
+
+    - task: AzureWebAppContainer@1
+      displayName: "Deploy Container"
+
+      inputs:
+        azureSubscription: '$(azureServiceConnection)'
+        appName: '$(webAppName)'
+        containers: '$(acrLoginServer)/$(imageRepository):$(imageTag)'

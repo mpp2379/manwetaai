@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>LTX Video Generator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .container { max-width: 800px; margin: 24px auto; padding: 16px; }
+        label { display:block; margin-top:12px; }
+        input[type=text], input[type=number], textarea { width:100%; padding:8px; }
+        .outputs img { max-width:100%; height:auto; margin-top:8px; }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <div class="card">
+            <div class="auth-topbar">
+                <span>Signed in as <strong>{{ user.get("email") or user.get("phone_number") or user.get("name") }}</strong></span>
+                <button id="logoutBtn" class="logout-btn">Logout</button>
+            </div>
+            <div class="header">
+                <div class="logo">LTX</div>
+                <div>
+                    <div class="title">LTX Video Generator</div>
+                    <div class="subtitle">Upload an image and provide a prompt to generate videos using LTX with RunPod Serverless</div>
+                </div>
+            </div>
+
+            <div class="grid">
+                <div>
+                    <form method="POST" enctype="multipart/form-data">
+                        <div class="field">
+                            <label>Upload Image</label>
+                            <input type="file" name="image" accept="image/*" class="file-input" required>
+                        </div>
+
+                        <div class="field">
+                            <label>Prompt (video / LTX prompt)</label>
+                            <textarea name="prompt" rows="4" placeholder="Describe the video prompt" required>{{ request.form.prompt or '' }}</textarea>
+                        </div>
+
+                        <div style="display:flex;gap:8px">
+                            <div style="flex:1" class="field">
+                                <label>Width</label>
+                                <input type="number" name="width" value="{{ request.form.width or 1280 }}">
+                            </div>
+                            <div style="width:120px" class="field">
+                                <label>Height</label>
+                                <input type="number" name="height" value="{{ request.form.height or 720 }}">
+                            </div>
+                        </div>
+
+                        <div style="display:flex;gap:8px">
+                            <div style="flex:1" class="field">
+                                <label>FPS</label>
+                                <input type="number" name="fps" value="{{ request.form.fps or 25 }}">
+                            </div>
+                            <div style="width:120px" class="field">
+                                <label>Duration (s)</label>
+                                <input type="number" name="duration" value="{{ request.form.duration or 5 }}">
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label>Seed (optional)</label>
+                            <input type="number" name="seed" value="{{ request.form.seed or '' }}">
+                        </div>
+
+                        <div style="margin-top:8px">
+                            <button class="btn" type="submit">Generate Video</button>
+                        </div>
+                    </form>
+
+                    {% if message %}
+                        <p class="muted" style="margin-top:12px"><strong>{{ message }}</strong></p>
+                    {% endif %}
+
+                    <div id="statusArea" style="margin-top:12px"></div>
+                    <script>
+                        (function(){
+                            const runId = '{{ run_id or '' }}';
+                            if(!runId) return;
+
+                            const statusArea = document.getElementById('statusArea');
+
+                            statusArea.innerHTML = '<div class="muted">Checking status...</div>';
+
+                            const poll = async ()=>{
+                                try{
+                                    const res = await fetch(`/status?run_id=${runId}`);
+                                    const data = await res.json();
+
+                                    if(data.status === 'completed'){
+                                        statusArea.innerHTML = '<div class="muted">✓ Completed — fetching outputs...</div>';
+                                        // render outputs
+                                        const outputs = data.outputs || [];
+                                        if(outputs.length === 0) {
+                                            statusArea.innerHTML += '<div class="muted">No outputs found</div>';
+                                            return;
+                                        }
+                                        let html = '<div class="outputs-grid">';
+                                        for(const f of outputs){
+                                            const name = f.filename.split('/').pop();
+                                            if(name.match(/\.(png|jpg|jpeg|webp)$/i)){
+                                                html += `<div class="thumb"><img src="/static/${f.filename}" alt="${name}"><a class="file-link" href="/static/${f.filename}" download>${name}</a></div>`;
+                                            } else if(name.match(/\.(mp4|webm|avi)$/i)) {
+                                                html += `<div class="thumb"><video style="width:100%;height:auto" controls><source src="/static/${f.filename}"></video><a class="file-link" href="/static/${f.filename}" download>${name}</a></div>`;
+                                            } else {
+                                                html += `<div class="thumb"><div style="height:120px;display:flex;align-items:center;justify-content:center;color:var(--muted)">File</div><a class="file-link" href="/static/${f.filename}" download>${name}</a></div>`;
+                                            }
+                                        }
+                                        html += '</div>';
+                                        const outputsEl = document.querySelector('.outputs');
+                                        if(outputsEl) {
+                                            outputsEl.innerHTML = html;
+                                        }
+                                        return;
+                                    }
+
+                                    if(data.status === 'error'){
+                                        statusArea.innerHTML = '<div class="muted" style="color: #f44336;">✗ Error: '+(data.detail||'unknown')+'</div>';
+                                        return;
+                                    }
+
+                                    statusArea.innerHTML = '<div class="muted">⏳ Status: '+data.status+'</div>';
+                                    setTimeout(poll, 3000);
+                                }catch(err){
+                                    statusArea.innerHTML = '<div class="muted" style="color: #f44336;">Polling error: '+err+'</div>';
+                                }
+                            };
+
+                            // small delay so initial render completes
+                            setTimeout(poll, 1000);
+                        })();
+                    </script>
+                </div>
+
+                <div>
+                    <div class="card" style="padding:12px">
+                        <div style="display:flex;align-items:center;justify-content:space-between">
+                            <div style="font-weight:600">Generated Outputs</div>
+                            <div class="muted">Saved to static/outputs</div>
+                        </div>
+
+                        {% if outputs %}
+                            <div class="outputs">
+                                <div class="outputs-grid">
+                                    {% for f in outputs %}
+                                        <div class="thumb">
+                                            {% if f.filename.endswith(('.png','.jpg','.jpeg','.webp')) %}
+                                                <img src="{{ url_for('static', filename=f.filename) }}" alt="{{ f.filename }}">
+                                            {% elif f.filename.endswith(('.mp4','.webm','.avi')) %}
+                                                <video style="width:100%;height:auto" controls>
+                                                    <source src="{{ url_for('static', filename=f.filename) }}">
+                                                </video>
+                                            {% else %}
+                                                <div style="height:120px;display:flex;align-items:center;justify-content:center;color:var(--muted)">File</div>
+                                            {% endif %}
+                                            <a class="file-link" href="{{ url_for('static', filename=f.filename) }}" download>{{ f.filename.split('/')[-1] }}</a>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% else %}
+                            <p class="muted" style="margin-top:12px">No outputs yet. Submit a job to see generated files here.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<script>
+document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+    await fetch('/auth/logout', {method:'POST'});
+    window.location.href = '/login';
+});
+</script>
+</body>
+</html>
