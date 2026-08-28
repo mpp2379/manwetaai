@@ -347,3 +347,64 @@ def prepare_workflow(
     print(f"  Seed     : {seed}")
 
     return workflow
+
+
+# ============================================================
+# Character image generation (Flux 1 Schnell)
+# ============================================================
+
+def prepare_character_workflow(
+    workflow,
+    prompt=None,
+    width=None,
+    height=None,
+    seed=None
+):
+    """
+    Modify the Flux 1 Schnell text-to-image workflow
+    with user-provided parameters.
+
+    Node map:
+      "6"  = CLIPTextEncode (Positive Prompt)
+      "27" = EmptySD3LatentImage (width / height / batch_size)
+      "31" = KSampler (seed, steps=4, cfg=1)
+      "33" = CLIPTextEncode (Negative Prompt - left empty)
+    """
+    import random
+
+    # --------------------------------------------------------
+    # Positive prompt
+    # Node 6 = CLIPTextEncode
+    # --------------------------------------------------------
+
+    if prompt is not None:
+        workflow["6"]["inputs"]["text"] = prompt
+
+    # --------------------------------------------------------
+    # Latent size
+    # Node 27 = EmptySD3LatentImage
+    # --------------------------------------------------------
+
+    if width is not None:
+        workflow["27"]["inputs"]["width"] = int(width)
+
+    if height is not None:
+        workflow["27"]["inputs"]["height"] = int(height)
+
+    # --------------------------------------------------------
+    # Seed
+    # Node 31 = KSampler
+    # --------------------------------------------------------
+
+    if seed is None:
+        seed = random.randint(0, 2**63 - 1)
+
+    workflow["31"]["inputs"]["seed"] = int(seed)
+
+    print("\nCharacter workflow parameters:")
+    print(f"  Prompt   : {prompt}")
+    print(f"  Width    : {width}")
+    print(f"  Height   : {height}")
+    print(f"  Seed     : {seed}")
+
+    return workflow

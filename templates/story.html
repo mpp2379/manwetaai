@@ -1,0 +1,2379 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>AI Story Architect</title>
+
+<link rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}">
+
+<style>
+
+/* =========================================================
+   ROOT
+========================================================= */
+
+:root{
+  --bg:#070914;
+  --panel:rgba(16,20,38,.82);
+  --border:rgba(255,255,255,.10);
+  --text:#f5f7ff;
+  --muted:#9ca6c4;
+  --accent:#8b5cf6;
+  --cyan:#06b6d4;
+  --success:#34d399;
+  --danger:#fb7185;
+}
+
+
+/* =========================================================
+   GLOBAL
+========================================================= */
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  min-height:100vh;
+
+  color:var(--text);
+
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
+
+  background:
+    radial-gradient(
+      circle at 12% 8%,
+      rgba(139,92,246,.20),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 88% 12%,
+      rgba(6,182,212,.15),
+      transparent 26%
+    ),
+    var(--bg);
+}
+
+
+/* Background grid */
+
+body:before{
+  content:"";
+
+  position:fixed;
+
+  inset:0;
+
+  pointer-events:none;
+
+  background-image:
+    linear-gradient(
+      rgba(255,255,255,.018) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(255,255,255,.018) 1px,
+      transparent 1px
+    );
+
+  background-size:40px 40px;
+}
+
+
+/* =========================================================
+   PAGE
+========================================================= */
+
+.page{
+  width:min(1080px,calc(100% - 32px));
+
+  margin:
+    28px
+    auto
+    60px;
+}
+
+
+/* =========================================================
+   MAIN CARD
+========================================================= */
+
+.card{
+  border:
+    1px solid
+    var(--border);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(18,23,43,.90),
+      rgba(9,12,26,.90)
+    );
+
+  backdrop-filter:blur(24px);
+
+  border-radius:24px;
+
+  box-shadow:
+    0 24px 80px
+    rgba(0,0,0,.42);
+
+  overflow:hidden;
+}
+
+
+/* =========================================================
+   TOP BAR
+========================================================= */
+
+.topbar{
+  min-height:58px;
+
+  padding:
+    12px
+    22px;
+
+  display:flex;
+
+  align-items:center;
+
+  justify-content:space-between;
+
+  gap:15px;
+
+  border-bottom:
+    1px solid
+    var(--border);
+
+  color:var(--muted);
+
+  font-size:13px;
+}
+
+
+.topbar strong{
+  color:var(--text);
+}
+
+
+/* =========================================================
+   TOP BUTTONS
+========================================================= */
+
+.logout{
+  border:
+    1px solid
+    rgba(255,255,255,.12);
+
+  background:
+    rgba(255,255,255,.05);
+
+  color:#fff;
+
+  padding:
+    9px
+    15px;
+
+  border-radius:10px;
+
+  cursor:pointer;
+
+  font-weight:600;
+
+  transition:
+    background .2s ease,
+    border-color .2s ease;
+}
+
+
+.logout:hover{
+  background:
+    rgba(255,255,255,.09);
+
+  border-color:
+    rgba(255,255,255,.20);
+}
+
+
+/* =========================================================
+   HERO
+========================================================= */
+
+.hero{
+  padding:34px;
+}
+
+
+.eyebrow{
+  color:#a78bfa;
+
+  font-size:11px;
+
+  font-weight:800;
+
+  letter-spacing:1.2px;
+
+  text-transform:uppercase;
+}
+
+
+.title{
+  font-size:
+    clamp(
+      28px,
+      5vw,
+      44px
+    );
+
+  font-weight:850;
+
+  letter-spacing:-1.4px;
+
+  margin-top:6px;
+}
+
+
+.subtitle{
+  margin-top:10px;
+
+  color:var(--muted);
+
+  max-width:760px;
+
+  line-height:1.55;
+
+  font-size:14px;
+}
+
+
+/* =========================================================
+   FORM
+========================================================= */
+
+.form{
+  margin:
+    0
+    22px
+    22px;
+
+  padding:26px;
+
+  border:
+    1px solid
+    var(--border);
+
+  border-radius:20px;
+
+  background:
+    rgba(255,255,255,.025);
+}
+
+
+.grid{
+  display:grid;
+
+  grid-template-columns:
+    1fr
+    1fr;
+
+  gap:15px;
+}
+
+
+.field.full{
+  grid-column:
+    1 / -1;
+}
+
+
+.field label{
+  display:block;
+
+  margin-bottom:8px;
+
+  color:#dfe4f5;
+
+  font-size:12px;
+
+  font-weight:700;
+}
+
+
+.field input,
+.field textarea,
+.field select{
+
+  width:100%;
+
+  border:
+    1px solid
+    rgba(255,255,255,.10);
+
+  border-radius:11px;
+
+  background:
+    rgba(4,7,18,.68);
+
+  color:var(--text);
+
+  padding:
+    11px
+    13px;
+
+  outline:none;
+
+  font:inherit;
+}
+
+
+.field textarea{
+
+  min-height:82px;
+
+  resize:vertical;
+
+  line-height:1.5;
+}
+
+
+.field textarea.idea{
+
+  min-height:115px;
+}
+
+
+.field input:focus,
+.field textarea:focus,
+.field select:focus{
+
+  border-color:
+    rgba(139,92,246,.75);
+
+  box-shadow:
+    0 0 0 4px
+    rgba(139,92,246,.11);
+}
+
+
+/* =========================================================
+   GENERATE BUTTON
+========================================================= */
+
+.btn{
+
+  width:100%;
+
+  border:0;
+
+  border-radius:13px;
+
+  padding:
+    14px
+    18px;
+
+  color:#fff;
+
+  background:
+    linear-gradient(
+      135deg,
+      #8b5cf6,
+      #6366f1 55%,
+      #06b6d4
+    );
+
+  box-shadow:
+    0 14px 30px
+    rgba(99,102,241,.24);
+
+  cursor:pointer;
+
+  font-weight:750;
+
+  transition:
+    transform .15s ease,
+    opacity .2s ease;
+}
+
+
+.btn:hover:not(:disabled){
+
+  transform:
+    translateY(-1px);
+}
+
+
+.btn:disabled{
+
+  opacity:.65;
+
+  cursor:not-allowed;
+}
+
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+.status{
+
+  min-height:20px;
+
+  margin-top:10px;
+
+  font-size:12px;
+
+  color:var(--muted);
+}
+
+
+.success{
+  color:var(--success);
+}
+
+
+.error{
+  color:var(--danger);
+}
+
+
+/* =========================================================
+   RESULT
+========================================================= */
+
+.result{
+
+  display:none;
+
+  margin:
+    0
+    22px
+    22px;
+}
+
+
+.result.visible{
+  display:block;
+}
+
+
+.result-head{
+
+  display:flex;
+
+  justify-content:space-between;
+
+  align-items:center;
+
+  gap:12px;
+
+  margin-bottom:14px;
+}
+
+
+.result-title{
+
+  font-size:20px;
+
+  font-weight:800;
+}
+
+
+.result-sub{
+
+  color:var(--muted);
+
+  font-size:12px;
+
+  margin-top:4px;
+
+  line-height:1.5;
+}
+
+
+/* =========================================================
+   META CARDS
+========================================================= */
+
+.meta{
+
+  display:grid;
+
+  grid-template-columns:
+    repeat(
+      4,
+      1fr
+    );
+
+  gap:9px;
+
+  margin-bottom:14px;
+}
+
+
+.meta-card{
+
+  padding:12px;
+
+  border:
+    1px solid
+    rgba(255,255,255,.08);
+
+  border-radius:12px;
+
+  background:
+    rgba(255,255,255,.025);
+}
+
+
+.meta-label{
+
+  color:#7f89a8;
+
+  font-size:10px;
+
+  text-transform:uppercase;
+
+  letter-spacing:.5px;
+}
+
+
+.meta-value{
+
+  margin-top:4px;
+
+  font-size:13px;
+
+  font-weight:700;
+}
+
+
+/* =========================================================
+   SCENE
+========================================================= */
+
+.scene{
+
+  border:
+    1px solid
+    rgba(255,255,255,.08);
+
+  border-radius:16px;
+
+  background:
+    rgba(255,255,255,.025);
+
+  padding:17px;
+
+  margin-top:10px;
+}
+
+
+.scene-head{
+
+  display:flex;
+
+  justify-content:space-between;
+
+  gap:12px;
+
+  align-items:center;
+}
+
+
+.scene-no{
+
+  font-weight:800;
+}
+
+
+.time{
+
+  color:#a78bfa;
+
+  font-size:12px;
+
+  font-weight:700;
+}
+
+
+/* =========================================================
+   SCENE DESCRIPTION
+========================================================= */
+
+.description{
+
+  color:var(--muted);
+
+  font-size:12px;
+
+  line-height:1.5;
+
+  margin:10px 0;
+}
+
+
+/* =========================================================
+   DIALOGUE SECTION
+========================================================= */
+
+.dialogue{
+
+  margin-top:14px;
+
+  display:flex;
+
+  flex-direction:column;
+
+  gap:8px;
+}
+
+
+/* Dialogue row */
+
+.line{
+
+  padding:
+    12px
+    14px;
+
+  border-radius:11px;
+
+  background:
+    rgba(139,92,246,.07);
+
+  border-left:
+    3px solid
+    rgba(139,92,246,.55);
+
+  transition:
+    background .2s ease,
+    transform .2s ease;
+}
+
+
+.line:hover{
+
+  background:
+    rgba(139,92,246,.11);
+
+  transform:
+    translateX(2px);
+}
+
+
+/* Speaker */
+
+.speaker{
+
+  font-size:11px;
+
+  font-weight:800;
+
+  color:#c4b5fd;
+
+  margin-bottom:4px;
+
+  text-transform:uppercase;
+
+  letter-spacing:.4px;
+}
+
+
+/* Dialogue text */
+
+.text{
+
+  font-size:14px;
+
+  line-height:1.55;
+
+  color:#f5f7ff;
+}
+
+
+/* =========================================================
+   NO DIALOGUE
+========================================================= */
+
+.no-dialogue{
+
+  padding:
+    12px
+    14px;
+
+  border-radius:11px;
+
+  background:
+    rgba(255,255,255,.025);
+
+  color:
+    var(--muted);
+
+  font-size:12px;
+
+  border:
+    1px dashed
+    rgba(255,255,255,.10);
+}
+
+
+/* =========================================================
+   COPY BUTTON
+========================================================= */
+
+.copy{
+
+  width:auto;
+
+  padding:
+    9px
+    13px;
+
+  background:
+    rgba(255,255,255,.06);
+
+  box-shadow:none;
+
+  font-size:12px;
+}
+
+
+/* =========================================================
+   EMPTY
+========================================================= */
+
+.empty{
+
+  padding:40px;
+
+  text-align:center;
+
+  border:
+    1px dashed
+    rgba(255,255,255,.12);
+
+  border-radius:16px;
+
+  color:var(--muted);
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media(max-width:700px){
+
+  .grid{
+
+    grid-template-columns:
+      1fr;
+  }
+
+
+  .field.full{
+
+    grid-column:auto;
+  }
+
+
+  .meta{
+
+    grid-template-columns:
+      1fr
+      1fr;
+  }
+
+
+  .hero{
+
+    padding:26px;
+  }
+
+
+  .form,
+  .result{
+
+    margin-left:12px;
+
+    margin-right:12px;
+  }
+
+
+  .result-head{
+
+    align-items:
+      flex-start;
+
+    flex-direction:
+      column;
+  }
+
+
+  .copy{
+
+    width:100%;
+  }
+
+}
+
+
+@media(max-width:450px){
+
+  .meta{
+
+    grid-template-columns:
+      1fr;
+  }
+
+
+  .topbar{
+
+    align-items:
+      flex-start;
+
+    gap:10px;
+
+    flex-direction:
+      column;
+  }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<div class="page">
+
+<div class="card">
+
+
+<!-- ======================================================
+     TOP BAR
+====================================================== -->
+
+<div class="topbar">
+
+  <span>
+
+    <a
+      href="/"
+      style="
+        color:#fff;
+        text-decoration:none;
+        font-weight:800;
+      "
+    >
+      Manweta AI
+    </a>
+
+    <span
+      style="
+        margin:0 8px;
+        color:#5f6885;
+      "
+    >
+      /
+    </span>
+
+    Story Generator
+
+  </span>
+
+
+  <div
+    style="
+      display:flex;
+      align-items:center;
+      gap:9px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    "
+  >
+
+    <a
+      href="{{ url_for('character') }}"
+      class="logout"
+      style="
+        text-decoration:none;
+        display:inline-block;
+      "
+    >
+      🧑 Character Generator
+    </a>
+
+
+    <a
+      href="{{ url_for('index') }}"
+      class="logout"
+      style="
+        text-decoration:none;
+        display:inline-block;
+      "
+    >
+      🎬 Video Generator
+    </a>
+
+
+    <a
+      href="/"
+      class="logout"
+      style="
+        text-decoration:none;
+        display:inline-block;
+      "
+    >
+      Home
+    </a>
+
+
+    <button
+      id="logoutBtn"
+      class="logout"
+    >
+      Logout
+    </button>
+
+  </div>
+
+</div>
+
+
+<!-- ======================================================
+     HERO
+====================================================== -->
+
+<div class="hero">
+
+  <div class="eyebrow">
+    AI Story Architect
+  </div>
+
+
+  <div class="title">
+    Turn Your Idea Into a Reel Story
+  </div>
+
+
+  <div class="subtitle">
+
+    Give us your idea and exact duration.
+    GPT-5.6 creates a tightly paced story
+    with scenes and dialogue, ready for the
+    next image and video generation stages.
+
+  </div>
+
+</div>
+
+
+<!-- ======================================================
+     INPUT FORM
+====================================================== -->
+
+<div class="form">
+
+<div class="grid">
+
+
+<!-- STORY IDEA -->
+
+<div class="field full">
+
+  <label>
+    Story Idea *
+  </label>
+
+  <textarea
+    id="storyIdea"
+    class="idea"
+    placeholder="Example: Chintu thinks Mintu has become invisible, but Mintu is actually hiding behind a tree eating a samosa. Make it funny with a strong punchline."
+  ></textarea>
+
+</div>
+
+
+<!-- DURATION -->
+
+<div class="field">
+
+  <label>
+    Duration (seconds) *
+  </label>
+
+  <input
+    id="storyDuration"
+    type="number"
+    min="5"
+    max="180"
+    value="20"
+  >
+
+</div>
+
+
+<!-- LANGUAGE -->
+
+<div class="field">
+
+  <label>
+    Language
+  </label>
+
+  <select id="storyLanguage">
+
+    <option value="Hindi">
+      Hindi
+    </option>
+
+    <option value="Hinglish">
+      Hinglish
+    </option>
+
+    <option value="English">
+      English
+    </option>
+
+    <option value="Marathi">
+      Marathi
+    </option>
+
+  </select>
+
+</div>
+
+
+<!-- CHARACTERS -->
+
+<div class="field full">
+
+  <label>
+    Characters
+  </label>
+
+  <input
+    id="storyCharacters"
+    placeholder="Example: Chintu and Mintu"
+  >
+
+</div>
+
+
+<!-- CHARACTER DESCRIPTION -->
+
+<div class="field full">
+
+  <label>
+    Character Descriptions
+  </label>
+
+  <textarea
+    id="storyCharacterDescriptions"
+    placeholder="Example: Chintu is a slim 6-year-old Indian village boy wearing a blue T-shirt and blue shorts. Mintu is a chubby 6-year-old Indian village boy..."
+  ></textarea>
+
+</div>
+
+
+<!-- LOCATION -->
+
+<div class="field">
+
+  <label>
+    Location
+  </label>
+
+  <input
+    id="storyLocation"
+    placeholder="Example: Indian village"
+  >
+
+</div>
+
+
+<!-- VISUAL STYLE -->
+
+<div class="field">
+
+  <label>
+    Visual Style
+  </label>
+
+  <input
+    id="storyVisualStyle"
+    value="3D animated, expressive, cinematic"
+  >
+
+</div>
+
+
+<!-- TONE -->
+
+<div class="field">
+
+  <label>
+    Tone
+  </label>
+
+  <input
+    id="storyTone"
+    value="Funny, innocent, family-friendly"
+  >
+
+</div>
+
+
+<!-- AUDIENCE -->
+
+<div class="field">
+
+  <label>
+    Target Audience
+  </label>
+
+  <input
+    id="storyAudience"
+    value="Instagram general audience"
+  >
+
+</div>
+
+
+<!-- REQUIREMENTS -->
+
+<div class="field full">
+
+  <label>
+    Special Requirements
+  </label>
+
+  <textarea
+    id="storyRequirements"
+    placeholder="Example: Strong punchline at the end, no narrator, keep Chintu and Mintu visually consistent."
+  ></textarea>
+
+</div>
+
+
+<!-- GENERATE -->
+
+<div class="field full">
+
+  <button
+    id="generateStoryBtn"
+    class="btn"
+  >
+    ✨ Generate Reel Story
+  </button>
+
+
+  <div
+    id="storyStatus"
+    class="status"
+  ></div>
+
+</div>
+
+
+</div>
+
+</div>
+
+
+<!-- ======================================================
+     RESULT
+====================================================== -->
+
+<div
+  id="storyResult"
+  class="result"
+>
+
+
+  <div class="result-head">
+
+
+    <div>
+
+      <div
+        class="result-title"
+        id="storyTitle"
+      >
+        Your Reel Story
+      </div>
+
+
+      <div
+        class="result-sub"
+        id="storySummary"
+      ></div>
+
+    </div>
+
+
+    <button
+      id="copyStoryBtn"
+      class="btn copy"
+    >
+      Copy Dialogue
+    </button>
+
+
+  </div>
+
+
+  <!-- META -->
+
+  <div
+    id="storyMeta"
+    class="meta"
+  ></div>
+
+
+  <!-- SCENES -->
+
+  <div
+    id="storyScenes"
+  ></div>
+
+
+</div>
+
+
+</div>
+
+</div>
+
+
+<script>
+
+/* =========================================================
+   HTML ESCAPE
+========================================================= */
+
+function esc(value){
+
+  return String(
+    value ?? ''
+  )
+
+  .replaceAll(
+    '&',
+    '&amp;'
+  )
+
+  .replaceAll(
+    '<',
+    '&lt;'
+  )
+
+  .replaceAll(
+    '>',
+    '&gt;'
+  )
+
+  .replaceAll(
+    '"',
+    '&quot;'
+  )
+
+  .replaceAll(
+    "'",
+    '&#039;'
+  );
+
+}
+
+
+/* =========================================================
+   ELEMENTS
+========================================================= */
+
+const btn =
+  document.getElementById(
+    'generateStoryBtn'
+  );
+
+
+const status =
+  document.getElementById(
+    'storyStatus'
+  );
+
+
+const result =
+  document.getElementById(
+    'storyResult'
+  );
+
+
+const scenesEl =
+  document.getElementById(
+    'storyScenes'
+  );
+
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+function setStatus(
+  message,
+  className = ''
+){
+
+  status.className =
+    'status ' +
+    className;
+
+  status.textContent =
+    message;
+
+}
+
+
+/* =========================================================
+   PARSE DIALOGUE
+========================================================= */
+
+/*
+
+CURRENT GPT RESPONSE:
+
+"Chintu: Jungle ki awaaz sun rahe ho? Mintu: Haan, chalo!"
+
+We convert this to:
+
+[
+  {
+    speaker: "Chintu",
+    text: "Jungle ki awaaz sun rahe ho?"
+  },
+  {
+    speaker: "Mintu",
+    text: "Haan, chalo!"
+  }
+]
+
+
+ALSO SUPPORTS FUTURE STRUCTURED RESPONSE:
+
+[
+  {
+    speaker: "Chintu",
+    text: "Hello"
+  },
+  {
+    speaker: "Mintu",
+    text: "Hi"
+  }
+]
+
+*/
+
+function parseDialogue(
+  dialogue
+){
+
+  /* -------------------------------------------------------
+     EMPTY
+  ------------------------------------------------------- */
+
+  if(
+    dialogue === null ||
+    dialogue === undefined
+  ){
+
+    return [];
+
+  }
+
+
+  /* -------------------------------------------------------
+     ARRAY FORMAT
+  ------------------------------------------------------- */
+
+  if(
+    Array.isArray(dialogue)
+  ){
+
+    return dialogue
+      .map(item => {
+
+        if(
+          typeof item === 'string'
+        ){
+
+          return {
+
+            speaker:'',
+            text:item
+
+          };
+
+        }
+
+
+        return {
+
+          speaker:
+            item?.speaker || '',
+
+          text:
+            item?.text || ''
+
+        };
+
+      })
+      .filter(
+        item =>
+          item.text &&
+          item.text.trim()
+      );
+
+  }
+
+
+  /* -------------------------------------------------------
+     STRING FORMAT
+  ------------------------------------------------------- */
+
+  if(
+    typeof dialogue !== 'string'
+  ){
+
+    return [];
+
+  }
+
+
+  const text =
+    dialogue.trim();
+
+
+  if(!text){
+
+    return [];
+
+  }
+
+
+  /*
+   IMPORTANT:
+
+   This handles:
+
+   Chintu: Jungle ki awaaz sun rahe ho?
+   Mintu: Haan, chalo!
+
+   and:
+
+   Chintu: Jungle ki awaaz sun rahe ho? Mintu: Haan, chalo!
+  */
+
+
+  const regex =
+    /([^:]+):\s*(.*?)(?=\s+[A-Za-zÀ-ÿ][^:]{0,40}:\s*|$)/g;
+
+
+  const lines = [];
+
+
+  let match;
+
+
+  while(
+    (match = regex.exec(text))
+    !== null
+  ){
+
+    const speaker =
+      match[1]
+        .trim();
+
+
+    const dialogueText =
+      match[2]
+        .trim();
+
+
+    if(
+      speaker &&
+      dialogueText
+    ){
+
+      lines.push({
+
+        speaker:
+          speaker,
+
+        text:
+          dialogueText
+
+      });
+
+    }
+
+  }
+
+
+  /* -------------------------------------------------------
+     FALLBACK
+
+     Never hide dialogue.
+  ------------------------------------------------------- */
+
+  if(
+    lines.length === 0
+  ){
+
+    return [
+
+      {
+
+        speaker:'',
+
+        text:text
+
+      }
+
+    ];
+
+  }
+
+
+  return lines;
+
+}
+
+
+/* =========================================================
+   GENERATE STORY
+========================================================= */
+
+btn.addEventListener(
+  'click',
+  async () => {
+
+
+    /* -----------------------------------------------------
+       READ INPUT
+    ----------------------------------------------------- */
+
+    const idea =
+      document
+        .getElementById(
+          'storyIdea'
+        )
+        .value
+        .trim();
+
+
+    const duration =
+      Number(
+        document
+          .getElementById(
+            'storyDuration'
+          )
+          .value
+      );
+
+
+    /* -----------------------------------------------------
+       VALIDATION
+    ----------------------------------------------------- */
+
+    if(!idea){
+
+      setStatus(
+        'Please enter a story idea.',
+        'error'
+      );
+
+      return;
+
+    }
+
+
+    if(
+      !Number.isInteger(
+        duration
+      ) ||
+      duration < 5 ||
+      duration > 180
+    ){
+
+      setStatus(
+        'Duration must be between 5 and 180 seconds.',
+        'error'
+      );
+
+      return;
+
+    }
+
+
+    /* -----------------------------------------------------
+       PAYLOAD
+    ----------------------------------------------------- */
+
+    const payload = {
+
+      idea:
+
+        idea,
+
+
+      duration:
+
+        duration,
+
+
+      language:
+
+        document
+          .getElementById(
+            'storyLanguage'
+          )
+          .value,
+
+
+      characters:
+
+        document
+          .getElementById(
+            'storyCharacters'
+          )
+          .value
+          .trim(),
+
+
+      character_descriptions:
+
+        document
+          .getElementById(
+            'storyCharacterDescriptions'
+          )
+          .value
+          .trim(),
+
+
+      location:
+
+        document
+          .getElementById(
+            'storyLocation'
+          )
+          .value
+          .trim(),
+
+
+      visual_style:
+
+        document
+          .getElementById(
+            'storyVisualStyle'
+          )
+          .value
+          .trim(),
+
+
+      tone:
+
+        document
+          .getElementById(
+            'storyTone'
+          )
+          .value
+          .trim(),
+
+
+      audience:
+
+        document
+          .getElementById(
+            'storyAudience'
+          )
+          .value
+          .trim(),
+
+
+      requirements:
+
+        document
+          .getElementById(
+            'storyRequirements'
+          )
+          .value
+          .trim()
+
+    };
+
+
+    /* -----------------------------------------------------
+       LOADING STATE
+    ----------------------------------------------------- */
+
+    btn.disabled =
+      true;
+
+
+    btn.textContent =
+      '⏳ Creating Story...';
+
+
+    result.classList.remove(
+      'visible'
+    );
+
+
+    setStatus(
+      'GPT-5.6 is creating your story...'
+    );
+
+
+    try{
+
+
+      /* ---------------------------------------------------
+         CALL BACKEND
+      --------------------------------------------------- */
+
+      let response =
+        await fetch(
+          '/api/story/generate',
+          {
+
+            method:'POST',
+
+            credentials:
+              'same-origin',
+
+            headers:{
+
+              'Content-Type':
+                'application/json'
+
+            },
+
+            body:
+              JSON.stringify(
+                payload
+              )
+
+          }
+        );
+
+
+      /* ---------------------------------------------------
+         SESSION REFRESH
+
+         Keep this because your application
+         uses authentication.
+      --------------------------------------------------- */
+
+      if(
+        response.status === 401
+      ){
+
+        setStatus(
+          'Refreshing your session...'
+        );
+
+
+        const refresh =
+          await fetch(
+            '/auth/refresh',
+            {
+
+              method:'POST',
+
+              credentials:
+                'same-origin'
+
+            }
+          );
+
+
+        if(
+          !refresh.ok
+        ){
+
+          window.location.href =
+            '/';
+
+          return;
+
+        }
+
+
+        response =
+          await fetch(
+            '/api/story/generate',
+            {
+
+              method:'POST',
+
+              credentials:
+                'same-origin',
+
+              headers:{
+
+                'Content-Type':
+                  'application/json'
+
+              },
+
+              body:
+                JSON.stringify(
+                  payload
+                )
+
+            }
+          );
+
+      }
+
+
+      /* ---------------------------------------------------
+         READ RESPONSE
+      --------------------------------------------------- */
+
+      const data =
+        await response.json();
+
+
+      if(
+        !response.ok
+      ){
+
+        throw new Error(
+
+          data.error ||
+          'Story generation failed.'
+
+        );
+
+      }
+
+
+      /* ---------------------------------------------------
+         GET STORY
+
+         Your current backend:
+
+         {
+           success:true,
+           story:{
+             ...
+           }
+         }
+
+         Also support:
+
+         {
+           user_story:{
+             ...
+           }
+         }
+      --------------------------------------------------- */
+
+      const story =
+        data.story ||
+        data.user_story ||
+        data;
+
+
+      /* ---------------------------------------------------
+         TITLE
+      --------------------------------------------------- */
+
+      document
+        .getElementById(
+          'storyTitle'
+        )
+        .textContent =
+
+        story.title ||
+        'Your Reel Story';
+
+
+      /* ---------------------------------------------------
+         SUMMARY
+      --------------------------------------------------- */
+
+      document
+        .getElementById(
+          'storySummary'
+        )
+        .textContent =
+
+        story.summary ||
+        '';
+
+
+      /* ---------------------------------------------------
+         SCENES
+      --------------------------------------------------- */
+
+      const scenes =
+
+        Array.isArray(
+          story.scenes
+        )
+
+        ? story.scenes
+
+        : [];
+
+
+      /* ---------------------------------------------------
+         META
+      --------------------------------------------------- */
+
+      document
+        .getElementById(
+          'storyMeta'
+        )
+        .innerHTML = `
+
+          <div class="meta-card">
+
+            <div class="meta-label">
+              Duration
+            </div>
+
+            <div class="meta-value">
+
+              ${esc(
+                story.total_duration_seconds ||
+                duration
+              )}
+
+              sec
+
+            </div>
+
+          </div>
+
+
+          <div class="meta-card">
+
+            <div class="meta-label">
+              Scenes
+            </div>
+
+            <div class="meta-value">
+
+              ${scenes.length}
+
+            </div>
+
+          </div>
+
+
+          <div class="meta-card">
+
+            <div class="meta-label">
+              Language
+            </div>
+
+            <div class="meta-value">
+
+              ${esc(
+                story.language ||
+                payload.language
+              )}
+
+            </div>
+
+          </div>
+
+
+          <div class="meta-card">
+
+            <div class="meta-label">
+              Format
+            </div>
+
+            <div class="meta-value">
+              9:16 Reel
+            </div>
+
+          </div>
+
+        `;
+
+
+      /* ---------------------------------------------------
+         RENDER SCENES
+      --------------------------------------------------- */
+
+      scenesEl.innerHTML =
+
+        scenes.length
+
+        ? scenes
+            .map(
+              scene => {
+
+
+                /* -----------------------------------------
+                   PARSE DIALOGUE
+                ----------------------------------------- */
+
+                const lines =
+                  parseDialogue(
+                    scene.dialogue
+                  );
+
+
+                /* -----------------------------------------
+                   RENDER DIALOGUE
+                ----------------------------------------- */
+
+                const dialogueHTML =
+
+                  lines.length
+
+                  ?
+
+                  lines
+                    .map(
+                      line => `
+
+                        <div class="line">
+
+                          ${
+                            line.speaker
+
+                            ?
+
+                            `
+
+                              <div class="speaker">
+
+                                ${esc(
+                                  line.speaker
+                                )}
+
+                              </div>
+
+                            `
+
+                            :
+
+                            ''
+                          }
+
+
+                          <div class="text">
+
+                            ${esc(
+                              line.text
+                            )}
+
+                          </div>
+
+                        </div>
+
+                      `
+                    )
+                    .join('')
+
+                  :
+
+                  `
+
+                    <div class="no-dialogue">
+
+                      No dialogue for this scene.
+
+                    </div>
+
+                  `;
+
+
+                /* -----------------------------------------
+                   SCENE
+                ----------------------------------------- */
+
+                return `
+
+                  <div class="scene">
+
+
+                    <div class="scene-head">
+
+                      <div class="scene-no">
+
+                        Scene
+                        ${esc(
+                          scene.scene_id
+                        )}
+
+                      </div>
+
+
+                      <div class="time">
+
+                        ${esc(
+                          scene.start_time
+                        )}
+
+                        –
+
+                        ${esc(
+                          scene.end_time
+                        )}
+
+                        sec
+
+                      </div>
+
+                    </div>
+
+
+                    ${
+                      scene.description
+
+                      ?
+
+                      `
+
+                        <div class="description">
+
+                          ${esc(
+                            scene.description
+                          )}
+
+                        </div>
+
+                      `
+
+                      :
+
+                      ''
+                    }
+
+
+                    <div class="dialogue">
+
+                      ${dialogueHTML}
+
+                    </div>
+
+
+                  </div>
+
+                `;
+
+              }
+            )
+            .join('')
+
+        :
+
+        `
+
+          <div class="empty">
+
+            No scenes were generated.
+
+          </div>
+
+        `;
+
+
+      /* ---------------------------------------------------
+         SHOW RESULT
+      --------------------------------------------------- */
+
+      result.classList.add(
+        'visible'
+      );
+
+
+      setStatus(
+
+        `✓ Story generated successfully — ${scenes.length} scenes / ${duration} seconds.`,
+
+        'success'
+
+      );
+
+
+      /* ---------------------------------------------------
+         SCROLL TO RESULT
+      --------------------------------------------------- */
+
+      result.scrollIntoView({
+
+        behavior:
+          'smooth',
+
+        block:
+          'start'
+
+      });
+
+
+    }
+
+
+    catch(error){
+
+      console.error(
+        'Story generation error:',
+        error
+      );
+
+
+      setStatus(
+
+        error.message ||
+        'Something went wrong while generating the story.',
+
+        'error'
+
+      );
+
+    }
+
+
+    finally{
+
+      btn.disabled =
+        false;
+
+
+      btn.textContent =
+        '✨ Generate Reel Story';
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   COPY STORY
+========================================================= */
+
+document
+  .getElementById(
+    'copyStoryBtn'
+  )
+  .addEventListener(
+    'click',
+    async () => {
+
+
+      const resultText =
+        document
+          .getElementById(
+            'storyResult'
+          )
+          .innerText;
+
+
+      try{
+
+
+        await navigator
+          .clipboard
+          .writeText(
+            resultText
+          );
+
+
+        const button =
+          document
+            .getElementById(
+              'copyStoryBtn'
+            );
+
+
+        button.textContent =
+          '✓ Copied';
+
+
+        setTimeout(
+          () => {
+
+            button.textContent =
+              'Copy Dialogue';
+
+          },
+          1500
+        );
+
+
+      }
+      catch(error){
+
+        setStatus(
+          'Could not copy story.',
+          'error'
+        );
+
+      }
+
+    }
+  );
+
+
+/* =========================================================
+   LOGOUT
+========================================================= */
+
+document
+  .getElementById(
+    'logoutBtn'
+  )
+  ?.addEventListener(
+    'click',
+    async () => {
+
+
+      try{
+
+        await fetch(
+          '/auth/logout',
+          {
+            method:'POST',
+            credentials:'same-origin'
+          }
+        );
+
+      }
+      finally{
+
+        window.location.href =
+          '/';
+
+      }
+
+    }
+  );
+
+
+</script>
+
+</body>
+</html>

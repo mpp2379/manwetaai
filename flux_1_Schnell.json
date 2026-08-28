@@ -1,0 +1,107 @@
+{
+  "6": {
+    "inputs": {
+      "text": "Create a highly detailed, photorealistic character portrait of a **25-year-old Indian woman** with a distinctive, memorable appearance and strong visual identity.\n\n**Face:** oval-shaped face, warm medium-brown skin, expressive dark brown almond-shaped eyes, naturally thick eyebrows, straight proportional nose, soft defined lips, subtle cheekbones, small beauty mark below the left eye. Natural skin texture with realistic pores and fine facial details.\n\n**Hair:** long, thick, naturally wavy black hair, center-parted, a few loose strands framing the face.\n\n**Body:** realistic human proportions, healthy natural physique, elegant posture, anatomically accurate hands and facial structure.\n\n**Clothing:** modern elegant casual outfit — cream-colored fitted blouse with high-waisted dark blue jeans, minimal gold earrings, simple bracelet, no visible logos.\n\n**Expression:** calm, confident, approachable expression with a subtle natural smile.\n\n**Visual style:** ultra-realistic photography, cinematic lighting, natural skin tones, realistic eyes, detailed hair strands, physically accurate shadows, high dynamic range, shallow depth of field, professional fashion photography, 85mm portrait lens, crisp facial details, realistic texture, premium editorial photography.\n\n**Character consistency requirements:** maintain the exact same facial identity, facial proportions, skin tone, hairstyle, eye color, body proportions, beauty mark, and overall appearance whenever this character is generated again. Avoid exaggerated beauty filters, plastic skin, facial distortion, asymmetrical eyes, extra fingers, deformed hands, or unrealistic anatomy.\n\nClean composition, highly detailed, photorealistic, natural and believable human appearance.\n",
+      "clip": [
+        "30",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Positive Prompt)"
+    }
+  },
+  "8": {
+    "inputs": {
+      "samples": [
+        "31",
+        0
+      ],
+      "vae": [
+        "30",
+        2
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "9": {
+    "inputs": {
+      "filename_prefix": "ComfyUI",
+      "images": [
+        "8",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Save Image"
+    }
+  },
+  "27": {
+    "inputs": {
+      "width": 1024,
+      "height": 1024,
+      "batch_size": 1
+    },
+    "class_type": "EmptySD3LatentImage",
+    "_meta": {
+      "title": "EmptySD3LatentImage"
+    }
+  },
+  "30": {
+    "inputs": {
+      "ckpt_name": "flux1-schnell-fp8.safetensors"
+    },
+    "class_type": "CheckpointLoaderSimple",
+    "_meta": {
+      "title": "Load Checkpoint"
+    }
+  },
+  "31": {
+    "inputs": {
+      "seed": 275510036350193,
+      "steps": 4,
+      "cfg": 1,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "denoise": 1,
+      "model": [
+        "30",
+        0
+      ],
+      "positive": [
+        "6",
+        0
+      ],
+      "negative": [
+        "33",
+        0
+      ],
+      "latent_image": [
+        "27",
+        0
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "KSampler"
+    }
+  },
+  "33": {
+    "inputs": {
+      "text": "",
+      "clip": [
+        "30",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Negative Prompt)"
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "qwen_product_quality",
+  "provider": "comfyui",
+  "model": "qwen-image-edit-2511",
+  "workflow": "qwen_product_quality",
+  "remoteImageName": "image.png",
+  "nodes": {
+    "loadImage": "41",
+    "positivePrompt": "170:151",
+    "negativePrompt": "170:149",
+    "sampler": "170:169"
+  },
+  "enabled": true
+}

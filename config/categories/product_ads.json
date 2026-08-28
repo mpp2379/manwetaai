@@ -1,0 +1,6 @@
+{
+  "id": "product_ads",
+  "name": "Product Ads",
+  "description": "AI-generated commercial advertisements for uploaded products.",
+  "enabled": true
+}

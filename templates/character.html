@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>AI Character Generator</title>
+
+<link rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}">
+
+<style>
+
+:root{
+  --bg:#070914;
+  --border:rgba(255,255,255,.10);
+  --text:#f5f7ff;
+  --muted:#9ca6c4;
+  --accent:#8b5cf6;
+  --success:#34d399;
+  --danger:#fb7185;
+}
+
+*{ box-sizing:border-box; }
+
+body{
+  margin:0;
+  min-height:100vh;
+  color:var(--text);
+  font-family:Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(139,92,246,.20), transparent 28%),
+    radial-gradient(circle at 88% 12%, rgba(6,182,212,.15), transparent 26%),
+    var(--bg);
+}
+
+body:before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  background-image:
+    linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
+  background-size:40px 40px;
+}
+
+.page{ width:min(1080px,calc(100% - 32px)); margin:28px auto 60px; }
+
+.card{
+  border:1px solid var(--border);
+  background:linear-gradient(145deg, rgba(18,23,43,.90), rgba(9,12,26,.90));
+  backdrop-filter:blur(24px);
+  border-radius:24px;
+  box-shadow:0 24px 80px rgba(0,0,0,.42);
+  overflow:hidden;
+}
+
+.topbar{
+  min-height:58px;
+  padding:12px 22px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:15px;
+  border-bottom:1px solid var(--border);
+  color:var(--muted);
+  font-size:13px;
+}
+
+.logout{
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.05);
+  color:#fff;
+  padding:9px 15px;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:600;
+  text-decoration:none;
+  display:inline-block;
+  transition:.2s ease;
+}
+
+.logout:hover{
+  background:rgba(255,255,255,.09);
+  border-color:rgba(255,255,255,.20);
+}
+
+.hero{ padding:34px; }
+
+.eyebrow{
+  color:#a78bfa;
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:1.2px;
+  text-transform:uppercase;
+}
+
+.title{
+  font-size:clamp(28px,5vw,44px);
+  font-weight:850;
+  letter-spacing:-1.4px;
+  margin-top:6px;
+}
+
+.subtitle{
+  margin-top:10px;
+  color:var(--muted);
+  max-width:760px;
+  line-height:1.55;
+  font-size:14px;
+}
+
+.form{
+  margin:0 22px 22px;
+  padding:26px;
+  border:1px solid var(--border);
+  border-radius:20px;
+  background:rgba(255,255,255,.025);
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:15px;
+}
+
+.field.full{ grid-column:1 / -1; }
+
+.field input.hidden,
+.field textarea.hidden{ display:none; }
+
+.field select{ margin-bottom:9px; }
+
+.field label{
+  display:block;
+  margin-bottom:8px;
+  color:#dfe4f5;
+  font-size:12px;
+  font-weight:700;
+}
+
+.field input,
+.field select,
+.field textarea{
+  width:100%;
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:11px;
+  background:rgba(4,7,18,.68);
+  color:var(--text);
+  padding:11px 13px;
+  outline:none;
+  font:inherit;
+}
+
+.field textarea{
+  min-height:82px;
+  resize:vertical;
+  line-height:1.5;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus{
+  border-color:rgba(139,92,246,.75);
+  box-shadow:0 0 0 4px rgba(139,92,246,.11);
+}
+
+.btn{
+  width:100%;
+  border:0;
+  border-radius:13px;
+  padding:14px 18px;
+  color:#fff;
+  background:linear-gradient(135deg,#8b5cf6,#6366f1 55%,#06b6d4);
+  box-shadow:0 14px 30px rgba(99,102,241,.24);
+  cursor:pointer;
+  font-weight:750;
+  font-size:14px;
+  transition:.2s ease;
+}
+
+.btn:hover:not(:disabled){ transform:translateY(-1px); }
+.btn:disabled{ opacity:.65; cursor:not-allowed; }
+
+.status{
+  min-height:20px;
+  margin-top:10px;
+  font-size:12px;
+  color:var(--muted);
+}
+
+.success{ color:var(--success); }
+.error{ color:var(--danger); }
+
+.result{
+  display:none;
+  margin:0 22px 22px;
+  padding:22px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:16px;
+  background:rgba(255,255,255,.025);
+}
+
+.result.visible{ display:block; }
+.result-title{ font-size:20px; font-weight:800; }
+
+.output-wrap{ margin-top:16px; text-align:center; }
+
+.output-wrap img{
+  max-width:100%;
+  max-height:520px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.10);
+}
+
+.download-link{
+  display:inline-block;
+  margin-top:12px;
+  padding:9px 16px;
+  border-radius:10px;
+  background:rgba(139,92,246,.20);
+  color:#c4b5fd;
+  text-decoration:none;
+  font-size:13px;
+  font-weight:600;
+}
+
+@media(max-width:700px){
+  .grid{ grid-template-columns:1fr; }
+  .field.full{ grid-column:auto; }
+  .hero{ padding:26px; }
+  .form{ margin-left:12px; margin-right:12px; }
+  .topbar{ flex-direction:column; align-items:flex-start; }
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="page">
+<div class="card">
+
+<div class="topbar">
+
+  <span>
+    <a href="/"
+       style="color:#fff;text-decoration:none;font-weight:800;">
+      Manweta AI
+    </a>
+    <span style="margin:0 8px;color:#5f6885;">/</span>
+    Character Generator
+  </span>
+
+  <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;justify-content:flex-end;">
+    <a href="{{ url_for('story_page') }}" class="logout">✨ Story Generator</a>
+    <a href="{{ url_for('index') }}" class="logout">🎬 Video Generator</a>
+    <a href="/" class="logout">Home</a>
+    <button id="logoutBtn" class="logout">Logout</button>
+  </div>
+
+</div>
+
+<div class="hero">
+
+  <div class="eyebrow">AI Character Studio</div>
+
+  <div class="title">Design a Consistent AI Character</div>
+
+  <div class="subtitle">
+    Describe your character once — Flux 1 Schnell generates a photorealistic
+    portrait with a consistent identity, ready to use across your story
+    scenes and videos. Use the same seed + description to keep the same face.
+  </div>
+
+</div>
+
+<div class="form">
+<div class="grid">
+
+  <div class="field">
+    <label>Gender</label>
+    <select id="charGenderSel">
+      <option value="woman">Woman</option>
+      <option value="man">Man</option>
+      <option value="girl">Girl</option>
+      <option value="boy">Boy</option>
+      <option value="__custom__">✍️ Custom…</option>
+    </select>
+    <input id="charGender" class="hidden" placeholder="Type custom gender…">
+  </div>
+
+  <div class="field">
+    <label>Age</label>
+    <select id="charAgeSel">
+      <option value="25">25</option>
+      <option value="6">6</option>
+      <option value="12">12</option>
+      <option value="18">18</option>
+      <option value="30">30</option>
+      <option value="45">45</option>
+      <option value="__custom__">✍️ Custom…</option>
+    </select>
+    <input id="charAge" type="number" min="1" max="120" class="hidden" placeholder="Type custom age…">
+  </div>
+
+  <div class="field full">
+    <label>Ethnicity / Skin Tone</label>
+    <select id="charEthnicitySel">
+      <option value="Indian, warm medium-brown skin">Indian — warm medium-brown skin</option>
+      <option value="Indian, fair skin">Indian — fair skin</option>
+      <option value="East Asian, light skin">East Asian — light skin</option>
+      <option value="African, deep brown skin">African — deep brown skin</option>
+      <option value="Middle Eastern, olive skin">Middle Eastern — olive skin</option>
+      <option value="European, fair skin">European — fair skin</option>
+      <option value="Latina, tan skin">Latina — tan skin</option>
+      <option value="Mixed heritage, medium skin">Mixed heritage — medium skin</option>
+      <option value="__custom__">✍️ Custom…</option>
+    </select>
+    <input id="charEthnicity" class="hidden" placeholder="Example: Indonesian, golden-tan skin">
+  </div>
+
+  <div class="field">
+    <label>Face Shape</label>
+    <select id="charFaceShapeSel">
+      <option value="oval-shaped face">Oval</option>
+      <option value="round face">Round</option>
+      <option value="square face with defined jawline">Square</option>
+      <option value="heart-shaped face">Heart-shaped</option>
+      <option value="diamond-shaped face">Diamond</option>
+      <option value="long oblong face">Long / Oblong</option>
+      <option value="__custom__">✍️ Custom…</option>
+    </select>
+    <input id="charFaceShape" class="hidden" placeholder="Type custom face shape…">
+  </div>
+
+  <div class="field">
+    <label>Eye Color &amp; Shape</label>
+    <select id="charEyesSel">
+      <option value="expressive dark brown almond-shaped eyes">Dark brown almond-shaped</option>
+      <option value="large expressive black round eyes">Large black round</option>
+      <option value="warm honey-brown doe eyes">Honey-brown doe eyes</option>
+      <option value="green hazel eyes">Green hazel</option>
+      <option value="bright blue round eyes">Blue round</option>
+      <option value="sharp grey eyes">Sharp grey</option>
+      <option value="__custom__">✍️ Custom…</option>
+    </select>
+    <input id="charEyes" class="hidden" placeholder="Example: amber upturned eyes">
+  </div>
+
+  <div class="field full">
+    <label>Other Face Details</label>
+    <select id="charFaceDetailsSel">
+      <option value="naturally thick eyebrows, straight proportional nose, soft defined lips, subtle cheekbones">Thick brows · straight nose · soft lips</option>
+      <option value="soft rounded cheeks, big curious eyes, small button nose">Childlike — round cheeks · button nose</option>
+      <option value="high cheekbones, sharp jawline, thin arched eyebrows">Sharp — high cheekbones · arched brows</option>
+      <option value="gentle features, slightly fuller lips, soft chin">Soft gentle features</option>
+      <option value="__custom__">✍️ Custom…</option>
+    </select>
+    <textarea id="charFaceDetails" class="hidden" placeholder="Example: naturally thick eyebrows, straight proportional nose…"></textarea>
+  </div>
+
+  <div class="field full">
+    <label>Distinctive Marks</label>
+    <select id="charMarksSel">
+      <option value="">None</option>
+      <option value="small beauty mark below the left eye">Beauty mark below left eye</option>
+      <option value="dimples on both cheeks">Dimples on both cheeks</option>
+      <option value="light freckles across the nose">Light freckles across nose</option>
+      <option value="small mole on the right cheek">Small mole on right cheek</option>
+      <option value="thin scar through the left eyebrow">Scar through left eyebrow</option>
+      <option value="__custom__">✍️ Custom…</option>
+    </select>
+    <input id="charMarks" class="hidden" placeholder="Example: tiny star tattoo behind the ear">
+  </div>
+
+  <div class="field full">
+    <label>Hair</label>
+    <select id="charHairSel">
+      <option value="long, thick, naturally wavy black hair, center-parted, a few loose strands framing the face">Long wavy black · center-parted</option>
+      <option value="shoulder-length straight black hair with soft layers">Shoulder-length straight black</option>
+      <option value="short curly dark hair">Short curly dark</option>
+      <option value="long braided black hair adorned with small white flowers">Braided black · flowers</option>
+      <option value="sleek bob cut with straight bangs">Bob cut with bangs</option>
+      <option value="long silky brown hair with gentle waves">Long silky brown waves</option>
+      <option value="messy short spiky black hair">Messy short spiky</option>
+      <option value="__custom__">✍️ Custom…</option>
+    </select>
+    <input id="charHair" class="hidden" placeholder="Example: shoulder-length auburn hair with side part">
+  </div>
+
+  <div class="field full">
+    <label>Body &amp; Posture</label>
+    <select id="charBodySel">
+      <option value="healthy natural physique, elegant posture">Healthy natural · elegant posture</option>
+      <option value="slim athletic build, upright confident posture">Slim athletic build</option>
+      <option value="tall lean frame, relaxed stance">Tall lean frame</option>
+      <option value="curvy hourglass figure, graceful posture">Curvy hourglass figure</option>
+      <option value="small chubby child build, energetic posture">Small child build (cute)</option>
+      <option value="__custom__">✍️ Custom…</option>
+    </select>
+    <input id="charBody" class="hidden" placeholder="Example: broad-shouldered muscular build">
+  </div>
+
+  <div class="field full">
+    <label>Clothing &amp; Accessories</label>
+    <select id="charClothingSel">
+      <option value="modern elegant casual outfit — cream-colored fitted blouse with high-waisted dark blue jeans, minimal gold earrings and a simple bracelet">Elegant casual — blouse &amp; jeans</option>
+      <option value="traditional Indian outfit — bright colorful kurta with dupatta, small jhumka earrings">Traditional — kurta &amp; dupatta</option>
+      <option value="crisp white shirt with tailored navy business suit and minimal watch">Business formal — suit</option>
+      <option value="casual graphic t-shirt with denim shorts and sneakers">Casual — tee &amp; denim shorts</option>
+      <option value="trendy oversized hoodie with joggers and chunky sneakers">Streetwear — hoodie</option>
+      <option value="festive lehenga with traditional gold jewelry">Festive — lehenga &amp; gold jewelry</option>
+      <option value="__custom__">✍️ Custom…</option>
+    </select>
+    <textarea id="charClothing" class="hidden" placeholder="Example: red summer dress with straw hat…"></textarea>
+  </div>
+
+  <div class="field full">
+    <label>Expression</label>
+    <select id="charExpressionSel">
+      <option value="calm, confident, approachable expression with a subtle natural smile">Calm confident · subtle smile</option>
+      <option value="warm friendly open smile with bright eyes">Warm friendly smile</option>
+      <option value="serious intense gaze, composed expression">Serious intense gaze</option>
+      <option value="playful mischievous grin">Playful mischievous grin</option>
+      <option value="peaceful serene expression with closed-lip smile">Peaceful serene look</option>
+      <option value="surprised wide-eyed expression">Surprised wide-eyed</option>
+      <option value="__custom__">✍️ Custom…</option>
+    </select>
+    <input id="charExpression" class="hidden" placeholder="Example: laughing joyfully with head tilted">
+  </div>
+
+  <div class="field full">
+    <label>Visual Style <span style="color:var(--muted);font-weight:400">(default: photorealistic)</span></label>
+    <select id="charStyleSel">
+      <option value="">Ultra-realistic photography (default)</option>
+      <option value="3D animated movie style, Pixar-like rendering, expressive stylized features, cinematic lighting">3D Animated (Pixar-like)</option>
+      <option value="anime illustration style, clean line art, vibrant colors, detailed shading">Anime Illustration</option>
+      <option value="cinematic film still, moody dramatic lighting, anamorphic look, film grain">Cinematic Film Still</option>
+      <option value="premium editorial fashion photography, studio lighting, high-end retouching">Editorial Fashion Photography</option>
+      <option value="classical oil painting portrait, rich brushwork, warm gallery lighting">Oil Painting Portrait</option>
+      <option value="__custom__">✍️ Custom…</option>
+    </select>
+    <input id="charStyle" class="hidden" placeholder="Describe your own visual style…">
+  </div>
+
+  <div class="field full">
+    <label>Extra Details</label>
+    <textarea id="charExtra" placeholder="Anything else to include in the prompt…"></textarea>
+  </div>
+
+  <div class="field">
+    <label>Width (px)</label>
+    <input id="charWidth" type="number" value="1024" min="256" max="2048" step="64">
+  </div>
+
+  <div class="field">
+    <label>Height (px)</label>
+    <input id="charHeight" type="number" value="1024" min="256" max="2048" step="64">
+  </div>
+
+  <div class="field full">
+    <label>Seed <span style="color:var(--muted);font-weight:400">(optional)</span></label>
+    <input id="charSeed" type="number" placeholder="Leave blank for random">
+  </div>
+
+  <div class="field full">
+    <button id="generateCharBtn" class="btn">🧑 Generate Character</button>
+    <div id="charStatus" class="status">{{ message or '' }}</div>
+  </div>
+
+</div>
+</div>
+
+<div id="charResult" class="result">
+  <div class="result-title">Your Character</div>
+  <div class="output-wrap" id="charOutput"></div>
+</div>
+
+</div>
+</div>
+
+<script>
+
+const btn = document.getElementById('generateCharBtn');
+const statusEl = document.getElementById('charStatus');
+const resultBox = document.getElementById('charResult');
+
+function setStatus(message, className = ''){
+  statusEl.className = 'status ' + className;
+  statusEl.textContent = message;
+}
+
+function esc(v){
+  return String(v ?? '').replace(/[&<>"']/g,
+    c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+}
+
+const CUSTOM_KEY = '__custom__';
+
+function getFieldValue(base){
+  const sel = document.getElementById(base + 'Sel');
+  const inp = document.getElementById(base);
+
+  if(sel && sel.value !== CUSTOM_KEY){
+    return sel.value.trim();
+  }
+
+  return inp ? inp.value.trim() : '';
+}
+
+// Show/hide custom text inputs when "✍️ Custom…" is selected
+document.querySelectorAll('select[id$="Sel"]').forEach(sel => {
+  sel.addEventListener('change', () => {
+    const inp = document.getElementById(sel.id.replace(/Sel$/, ''));
+    if(inp){
+      inp.classList.toggle('hidden', sel.value !== CUSTOM_KEY);
+    }
+  });
+});
+
+function collectPayload(){
+  return {
+    gender: getFieldValue('charGender'),
+    age: getFieldValue('charAge'),
+    ethnicity: getFieldValue('charEthnicity'),
+    face_shape: getFieldValue('charFaceShape'),
+    eye_color: getFieldValue('charEyes'),
+    eye_shape: '',
+    face_details: getFieldValue('charFaceDetails'),
+    distinctive_marks: getFieldValue('charMarks'),
+    hair: getFieldValue('charHair'),
+    body: getFieldValue('charBody'),
+    clothing: getFieldValue('charClothing'),
+    expression: getFieldValue('charExpression'),
+    visual_style: getFieldValue('charStyle'),
+    extra_details: document.getElementById('charExtra').value.trim(),
+    width: document.getElementById('charWidth').value || 1024,
+    height: document.getElementById('charHeight').value || 1024,
+    seed: document.getElementById('charSeed').value.trim()
+  };
+}
+
+async function submitCharacter(payload){
+  let response = await fetch('/character', {
+    method:'POST',
+    credentials:'same-origin',
+    headers:{'Content-Type':'application/x-www-form-urlencoded'},
+    body:new URLSearchParams(payload).toString()
+  });
+
+  if(response.status === 401){
+    const refresh = await fetch('/auth/refresh',
+      {method:'POST', credentials:'same-origin'});
+    if(!refresh.ok){ window.location.href = '/'; return null; }
+    response = await fetch('/character', {
+      method:'POST',
+      credentials:'same-origin',
+      headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body:new URLSearchParams(payload).toString()
+    });
+  }
+
+  return response;
+}
+
+function poll(runId){
+
+  const pollOnce = async () => {
+
+    try{
+      const res = await fetch(`/status?run_id=${runId}`);
+      const data = await res.json();
+
+      if(data.status === 'completed'){
+
+        setStatus('✓ Character generated successfully!', 'success');
+
+        const outputs = data.outputs || [];
+        const out = document.getElementById('charOutput');
+
+        out.innerHTML = outputs.map(f => {
+          const name = f.filename.split('/').pop();
+          return `<img src="/static/${esc(f.filename)}" alt="${esc(name)}"><br>
+                  <a class="download-link"
+                     href="/static/${esc(f.filename)}"
+                     download>⬇ Download ${esc(name)}</a>`;
+        }).join('');
+
+        resultBox.classList.add('visible');
+        resultBox.scrollIntoView({behavior:'smooth'});
+        btn.disabled = false;
+        btn.textContent = '🧑 Generate Another';
+        return;
+      }
+
+      if(data.status === 'error'){
+        setStatus('✗ Error: ' + (data.detail || 'unknown'), 'error');
+        btn.disabled = false;
+        btn.textContent = '🧑 Generate Character';
+        return;
+      }
+
+      setStatus('⏳ Generation status: ' + (data.status || 'running'));
+      setTimeout(pollOnce, 3000);
+
+    }catch(err){
+      setStatus('Polling error: ' + err, 'error');
+      btn.disabled = false;
+    }
+  };
+
+  setTimeout(pollOnce, 1000);
+}
+
+// Resume polling after POST page reload
+(function(){
+  const runId = "{{ run_id or '' }}";
+  if(runId){
+    btn.disabled = true;
+    btn.textContent = '⏳ Generating...';
+    poll(runId);
+  }
+})();
+
+btn.addEventListener('click', async () => {
+
+  const payload = collectPayload();
+
+  const described = [
+    payload.gender, payload.age, payload.ethnicity,
+    payload.face_shape, payload.eye_color, payload.face_details,
+    payload.distinctive_marks, payload.hair, payload.clothing,
+    payload.expression, payload.extra_details
+  ].some(v => v);
+
+  if(!described){
+    setStatus('Please describe your character using at least one field.', 'error');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Submitting...';
+  setStatus('Submitting your character to RunPod...');
+  resultBox.classList.remove('visible');
+
+  try{
+    const response = await submitCharacter(payload);
+
+    if(!response){
+      return; // redirected to login
+    }
+
+    const html =
+      new DOMParser().parseFromString(
+        await response.text(), 'text/html'
+      );
+
+    const newStatus = html.getElementById('charStatus');
+    const runIdMatch =
+      (newStatus ? newStatus.textContent : '')
+      .match(/Run ID:\s*([A-Za-z0-9-]+)/i);
+
+    if(!runIdMatch){
+      throw new Error(
+        newStatus ? newStatus.textContent : 'Submission failed.'
+      );
+    }
+
+    setStatus('⏳ Job submitted. Generating character...');
+    poll(runIdMatch[1].trim());
+
+  }catch(err){
+    setStatus(err.message || 'Something went wrong.', 'error');
+    btn.disabled = false;
+    btn.textContent = '🧑 Generate Character';
+  }
+});
+
+document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+  await fetch('/auth/logout', {method:'POST'});
+  window.location.href = '/';
+});
+
+</script>
+
+</body>
+</html>

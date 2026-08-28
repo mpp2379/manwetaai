@@ -1,0 +1,16 @@
+{
+  "id": "luxury_product_hero",
+  "categoryId": "product_ads",
+  "name": "Luxury Product Hero",
+  "description": "Premium studio advertisement with dramatic cinematic lighting and a sophisticated luxury environment.",
+  "thumbnail": "/static/templates/luxury-product-hero.jpg",
+  "promptTemplate": "Use the uploaded product image as the exact visual reference for the product.\n\nPreserve the product's original shape, proportions, colors, materials, logo, label, printed text, packaging and distinctive physical details.\nDo not redesign, deform, replace, duplicate or alter the product.\n\nCreate a premium commercial product advertisement.\n\nPlace the product in a sophisticated luxury studio environment on {surface}. Use {lighting} and a {background}.\n\nCreate a refined hero composition with {composition}.\nUse realistic materials, controlled reflections, natural shadows, professional product photography, shallow depth of field and a premium advertising aesthetic.\n\nThe product must remain sharp, recognizable and visually faithful to the uploaded reference.",
+  "variables": {
+    "surface": "polished dark marble",
+    "lighting": "warm cinematic rim lighting",
+    "background": "dark charcoal background with subtle golden atmospheric highlights",
+    "composition": "a centered hero shot with balanced negative space"
+  },
+  "modelProfileId": "qwen_product_quality",
+  "enabled": true
+}

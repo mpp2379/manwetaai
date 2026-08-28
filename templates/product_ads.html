@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Product Ads — Manweta AI</title>
+
+<link rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}">
+
+<style>
+
+:root{
+  --bg:#070914;
+  --border:rgba(255,255,255,.10);
+  --text:#f5f7ff;
+  --muted:#9ca6c4;
+  --accent:#8b5cf6;
+}
+
+*{ box-sizing:border-box; }
+
+html,
+body{
+  width:100%;
+  min-height:100%;
+  margin:0;
+}
+
+body{
+  min-height:100vh;
+  color:var(--text);
+  font-family:Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(139,92,246,.20), transparent 28%),
+    radial-gradient(circle at 88% 12%, rgba(6,182,212,.15), transparent 26%),
+    var(--bg);
+}
+
+body:before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  background-image:
+    linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
+  background-size:40px 40px;
+}
+
+.page{
+  width:100%;
+  min-height:100vh;
+  margin:0;
+  padding:0;
+}
+
+.card{
+  border:1px solid var(--border);
+  background:linear-gradient(145deg, rgba(18,23,43,.90), rgba(9,12,26,.90));
+  backdrop-filter:blur(24px);
+  width:100%;
+  min-height:100vh;
+  padding:0;
+  border-radius:0;
+  box-shadow:none;
+  overflow:hidden;
+}
+
+.topbar{
+  min-height:58px;
+  padding:12px 22px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:15px;
+  border-bottom:1px solid var(--border);
+  color:var(--muted);
+  font-size:13px;
+}
+
+.nav-links a{
+  color:var(--muted);
+  text-decoration:none;
+  margin-right:16px;
+  font-weight:600;
+}
+
+.nav-links a.active{ color:#fff; }
+.nav-links a:hover{ color:#c4b5fd; }
+
+.logout{
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.05);
+  color:#fff;
+  padding:9px 15px;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:600;
+  text-decoration:none;
+}
+
+.logout:hover{ background:rgba(255,255,255,.09); }
+
+.hero{
+  padding:40px clamp(24px, 4vw, 64px);
+}
+
+.section{
+  margin:0 0 22px;
+  padding:32px clamp(24px, 4vw, 64px);
+  border-radius:0;
+  border-left:0;
+  border-right:0;
+}
+
+.eyebrow{
+  color:#a78bfa;
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:1.2px;
+  text-transform:uppercase;
+}
+
+.title{
+  font-size:clamp(28px,5vw,44px);
+  font-weight:850;
+  letter-spacing:-1.4px;
+  margin-top:6px;
+}
+
+.subtitle{
+  margin-top:10px;
+  color:var(--muted);
+  max-width:760px;
+  line-height:1.55;
+  font-size:14px;
+}
+
+ .section{
+  border:1px solid var(--border);
+  background:rgba(255,255,255,.025);
+}
+
+.section h3{
+  margin:0 0 14px;
+  font-size:13px;
+  font-weight:800;
+  letter-spacing:.8px;
+  text-transform:uppercase;
+  color:#dfe4f5;
+}
+.field label,
+.customize label{
+  display:block;
+  margin-bottom:8px;
+  color:#dfe4f5;
+  font-size:12px;
+  font-weight:700;
+}
+
+.field input[type=file],
+.customize input{
+  width:100%;
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:11px;
+  background:rgba(4,7,18,.68);
+  color:var(--text);
+  padding:11px 13px;
+  outline:none;
+  font:inherit;
+}
+
+.preview-strip{ margin-top:12px; display:none; }
+.preview-strip img{
+  max-width:180px; max-height:180px;
+  border-radius:12px; border:1px solid var(--border);
+}
+
+.templates{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:16px;
+}
+
+.tcard{
+  border:1px solid var(--border);
+  border-radius:18px;
+  background:rgba(4,7,18,.55);
+  padding:20px;
+  cursor:pointer;
+  transition:.2s ease;
+  position:relative;
+}
+
+.tcard:hover{ border-color:rgba(139,92,246,.55); transform:translateY(-2px); }
+
+.tcard.selected{
+  border-color:var(--accent);
+  background:rgba(139,92,246,.10);
+  box-shadow:0 0 0 1px var(--accent) inset;
+}
+
+.tcard h4{ margin:0 0 8px; font-size:17px; font-weight:800; }
+.tcard p{ margin:0; color:var(--muted); font-size:13px; line-height:1.55; }
+
+.tcard .badge{
+  position:absolute; top:14px; right:14px;
+  font-size:10px; font-weight:800;
+  letter-spacing:1px; text-transform:uppercase;
+  color:#a78bfa; opacity:0;
+}
+.tcard.selected .badge{ opacity:1; }
+
+.tactions{ margin-top:16px; display:flex; gap:8px; flex-wrap:wrap; }
+
+.btn{
+  border:none; border-radius:11px;
+  padding:10px 16px; font-weight:700; font-size:13px;
+  cursor:pointer; transition:.2s ease; font-family:inherit;
+}
+
+.btn.primary{ background:linear-gradient(135deg,#8b5cf6,#6366f1); color:#fff; }
+.btn.primary:hover{ filter:brightness(1.12); }
+.btn.ghost{
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.12); color:#fff;
+}
+.btn:disabled{ opacity:.5; cursor:not-allowed; }
+
+.customize{ display:none; margin-top:16px; }
+.customize.visible{ display:block; }
+.customize .grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+@media(max-width:720px){
+  .customize .grid{ grid-template-columns:1fr; }
+  .topbar{ padding:12px 16px; flex-wrap:wrap; }
+  .nav-links{ width:100%; order:2; overflow-x:auto; white-space:nowrap; padding-bottom:2px; }
+  .nav-links a{ margin-right:12px; }
+  .hero{ padding:28px 20px; }
+  .section{ padding:24px 20px; }
+}
+
+.status{
+  margin-top:14px; padding:12px 14px;
+  border-radius:12px; font-size:13px; line-height:1.5; display:none;
+}
+.status.visible{ display:block; }
+.status.info{ background:rgba(139,92,246,.12); border:1px solid rgba(139,92,246,.35); }
+.status.success{ background:rgba(52,211,153,.12); border:1px solid rgba(52,211,153,.35); }
+.status.error{ background:rgba(251,113,133,.12); border:1px solid rgba(251,113,133,.35); }
+
+.resultBox{ display:none; margin-top:18px; text-align:center; }
+.resultBox.visible{ display:block; }
+.resultBox img{ max-width:min(480px,100%); border-radius:16px; border:1px solid var(--border); }
+
+.download-link{
+  display:inline-block; margin-top:12px;
+  color:#a78bfa; font-weight:700; text-decoration:none;
+}
+
+.modal{
+  display:none; position:fixed; inset:0; z-index:50;
+  background:rgba(3,5,12,.82); backdrop-filter:blur(8px);
+  align-items:center; justify-content:center; padding:24px;
+}
+.modal.visible{ display:flex; }
+
+.modal-inner{
+  max-width:640px; width:100%;
+  border:1px solid var(--border); border-radius:20px;
+  background:rgba(14,18,36,.98); padding:26px;
+  max-height:86vh; overflow:auto;
+}
+.modal-inner pre{
+  white-space:pre-wrap; word-break:break-word;
+  font-size:12.5px; line-height:1.65; color:#cdd4ec;
+  background:rgba(4,7,18,.7); border:1px solid var(--border);
+  border-radius:12px; padding:14px;
+}
+.modal-close{ float:right; }
+
+/* Prompt library */
+#libSearch{
+  width:100%;
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:11px;
+  background:rgba(4,7,18,.68);
+  color:var(--text);
+  padding:11px 13px;
+  outline:none;
+  font:inherit;
+  font-size:13px;
+}
+
+.libgrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:14px;
+}
+
+.libcard{
+  border:1px solid var(--border);
+  border-radius:14px;
+  background:rgba(4,7,18,.55);
+  padding:12px;
+  cursor:pointer;
+  transition:.2s ease;
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.libcard:hover{ border-color:rgba(139,92,246,.55); transform:translateY(-2px); }
+
+.libcard.selected{
+  border-color:var(--accent);
+  background:rgba(139,92,246,.10);
+  box-shadow:0 0 0 1px var(--accent) inset;
+}
+
+.libcard .badge{
+  position:absolute;
+  top:8px;
+  right:8px;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  color:#a78bfa;
+  opacity:0;
+}
+
+.libcard.selected .badge{ opacity:1; }
+
+.libthumb{
+  width:100%;
+  aspect-ratio:1/1;
+  border-radius:10px;
+  overflow:hidden;
+  border:1px solid var(--border);
+  background:rgba(0,0,0,.22);
+}
+
+.libthumb img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+
+.libinfo{ flex:1; min-width:0; }
+
+.libname{
+  font-size:12px;
+  font-weight:700;
+  line-height:1.3;
+  color:var(--text);
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+
+.libmeta{
+  margin-top:3px;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.5px;
+  text-transform:uppercase;
+  color:#a78bfa;
+}
+
+.libactions{
+  margin-top:6px;
+  display:none;
+  gap:6px;
+}
+
+.libcard.selected .libactions,
+.libcard:hover .libactions{ display:flex; }
+
+.libactions .btn{
+  padding:6px 12px;
+  font-size:12px;
+}
+
+/* Category selector */
+.categories{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:16px;
+}
+
+.category-card{
+  border:1px solid var(--border);
+  border-radius:16px;
+  background:rgba(4,7,18,.55);
+  padding:22px 18px;
+  text-align:center;
+  cursor:pointer;
+  transition:.2s ease;
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:8px;
+}
+
+.category-card:hover{
+  border-color:rgba(139,92,246,.55);
+  transform:translateY(-3px);
+}
+
+.category-card.selected{
+  border-color:var(--accent);
+  background:rgba(139,92,246,.12);
+  box-shadow:0 0 0 1px var(--accent) inset;
+}
+
+.cat-icon{
+  font-size:30px;
+  margin-bottom:4px;
+}
+
+.category-card h4{
+  font-size:16px;
+  font-weight:800;
+  margin:0;
+}
+
+.category-card p{
+  font-size:12px;
+  color:var(--muted);
+  line-height:1.45;
+  margin:0;
+  flex:1;
+}
+
+.cat-count{
+  font-size:11px;
+  font-weight:800;
+  color:#a78bfa;
+  background:rgba(139,92,246,.10);
+  border-radius:999px;
+  padding:3px 9px;
+}
+
+.subcategory-filter{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-bottom:12px;
+}
+
+.subcat-btn{
+  font-size:12px;
+  padding:6px 12px;
+  border:1px solid var(--border);
+  background:rgba(4,7,18,.45);
+  color:var(--muted);
+  border-radius:20px;
+  cursor:pointer;
+  font-weight:700;
+  transition:.2s ease;
+}
+
+.subcat-btn:hover{
+  background:rgba(4,7,18,.75);
+  color:#fff;
+}
+
+.subcat-btn.active{
+  background:linear-gradient(135deg,#8b5cf6,#6366f1);
+  color:#fff;
+  border-color:transparent;
+}
+
+#templateSection{
+  margin-top:12px;
+}
+
+</style>
+</head>
+<body>
+<div class="page">
+<div class="card">
+
+  <div class="topbar">
+    <div class="nav-links">
+      <a href="/video">Video</a>
+      <a href="/character">Character</a>
+      <a href="/story">Story</a>
+      <a href="/product-ads" class="active">Product Ads</a>
+    </div>
+    <div>
+      {{ user.email if user else '' }}
+      <button class="logout" id="logoutBtn">Logout</button>
+    </div>
+  </div>
+
+  <div class="hero">
+    <div class="eyebrow">Creative Template Library</div>
+    <h1 class="title">Product Ads</h1>
+    <p class="subtitle">
+      Upload your product photo, pick a creative template, and generate
+      a professional product advertisement. No prompt writing needed —
+      the creative direction is built in.
+    </p>
+  </div>
+
+  <!-- STEP 1: PRODUCT IMAGE -->
+  <div class="section">
+    <h3>1 · Your Product</h3>
+    <div class="field">
+      <label for="productImage">Upload product image (PNG / JPG / WEBP)</label>
+      <input type="file" id="productImage" accept=".png,.jpg,.jpeg,.webp">
+    </div>
+    <div class="preview-strip" id="previewStrip">
+      <img id="previewImg" alt="Product preview">
+    </div>
+  </div>
+
+    <!-- STEP 2A: CHOOSE CATEGORY -->
+  <div class="section">
+    <h3>2 · Choose a Category</h3>
+
+    <div class="categories" id="categoryGrid">
+      <div class="category-card" data-category="curated">
+        <div class="cat-icon">📸</div>
+        <h4>Curated Templates</h4>
+        <p>Crafted templates with configurable variables for luxury and minimal product shots.</p>
+        <span class="cat-count">2 templates</span>
+      </div>
+      <div class="category-card" data-category="library">
+        <div class="cat-icon">📚</div>
+        <h4>Prompt Library</h4>
+        <p>122 ready-made prompts with preview images. No prompt writing needed.</p>
+        <span class="cat-count">{{ library|length }} prompts</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2B: CHOOSE TEMPLATE (shows only after a category is selected) -->
+  <div class="section" id="templateSection" style="display:none;">
+    <h3 id="templateHeading">3 · Choose a Template</h3>
+
+    <!-- Library subcategory filter (appears for Prompt Library only) -->
+    <div class="subcategory-filter" id="subcategoryFilter" style="display:none;">
+      <button class="subcat-btn" data-subcat="all">All</button>
+      <button class="subcat-btn" data-subcat="Product &amp; Brand Photography">Product & Brand</button>
+      <button class="subcat-btn" data-subcat="Food &amp; Drink">Food & Drink</button>
+      <button class="subcat-btn" data-subcat="Poster &amp; Campaign">Poster & Campaign</button>
+    </div>
+
+    <input id="libSearch" placeholder="Search templates…" style="width:100%;margin-bottom:12px;">
+
+    <div id="templateGrid" class="templates">
+
+      <!-- Curated templates -->
+      {% for t in templates %}
+      <div class="tcard" data-template-id="{{ t.id }}" data-category="curated">
+        <span class="badge">Selected</span>
+        <h4>{{ t.name }}</h4>
+        <p>{{ t.description }}</p>
+        <div class="tactions">
+          <button class="btn ghost" onclick="event.stopPropagation(); previewTemplate('{{ t.id }}')">Preview</button>
+          <button class="btn primary" onclick="event.stopPropagation(); selectTemplate('{{ t.id }}')">Use Template</button>
+        </div>
+      </div>
+      {% endfor %}
+
+      <!-- Library templates -->
+      {% for t in library %}
+      <div class="libcard" data-template-id="{{ t.id }}" data-category="library" data-subcategory="{{ t.description }}">
+        {% if t.thumbnail %}
+        <div class="libthumb">
+          <img src="{{ t.thumbnail }}" alt="{{ t.name }}" loading="lazy">
+        </div>
+        {% endif %}
+        <div class="libinfo">
+          <div class="libname">{{ t.name }}</div>
+          <div class="libmeta">{{ t.description }}</div>
+        </div>
+        <div class="libactions">
+          <button class="btn ghost" onclick="event.stopPropagation(); previewTemplate('{{ t.id }}')">Preview</button>
+          <button class="btn primary" onclick="event.stopPropagation(); selectTemplate('{{ t.id }}')">Use Prompt</button>
+        </div>
+      </div>
+      {% endfor %}
+
+    </div>
+
+    <!-- Optional customization for the selected curated template -->
+    <div class="customize" id="customizePanel">
+      <div class="grid">
+        <div><label for="v_surface">Surface</label><input id="v_surface"></div>
+        <div><label for="v_lighting">Lighting</label><input id="v_lighting"></div>
+        <div><label for="v_background">Background</label><input id="v_background"></div>
+        <div><label for="v_composition">Composition</label><input id="v_composition"></div>
+      </div>
+      <p style="color:var(--muted);font-size:12px;margin:10px 0 0;">
+        Optional — leave blank to use this template's defaults.
+      </p>
+    </div>
+  </div>
+
+    <!-- STEP 3: GENERATE -->
+  <div class="section">
+    <h3>4 · Generate Advertisement</h3>
+    <button class="btn primary" id="generateBtn">✨ Generate Product Ad</button>
+    <div class="status" id="status"></div>
+    <div class="resultBox" id="resultBox">
+      <img id="resultImg" alt="Generated advertisement"><br>
+      <a class="download-link" id="downloadLink" download>⬇ Download result</a>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- TEMPLATE PREVIEW MODAL -->
+<div class="modal" id="modal">
+  <div class="modal-inner">
+    <button class="btn ghost modal-close" onclick="closeModal()">Close</button>
+    <h4 id="modalTitle" style="margin-top:0;"></h4>
+    <pre id="modalPrompt"></pre>
+  </div>
+</div>
+
+<script>
+const TEMPLATES = {
+  {% for t in templates %}
+  "{{ t.id }}": {
+    name: {{ t.name | tojson }},
+    description: {{ t.description | tojson }},
+    promptTemplate: {{ t.promptTemplate | tojson }},
+    variables: {{ t.variables | tojson }},
+    origin: 'curated'
+  },
+  {% endfor %}
+  {% for t in library %}
+  "{{ t.id }}": {
+    name: {{ t.name | tojson }},
+    description: {{ t.description | tojson }},
+    promptTemplate: {{ t.promptTemplate | tojson }},
+    variables: {},
+    origin: 'library'
+  },
+  {% endfor %}
+};
+
+let selectedTemplateId = null;
+let selectedCategory = null;
+let activeSubcat = 'all';
+
+const btn = document.getElementById('generateBtn');
+const statusEl = document.getElementById('status');
+const resultBox = document.getElementById('resultBox');
+
+function esc(s){
+  return String(s ?? '').replace(/[&<>"']/g,
+    c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function setStatus(msg, kind='info'){
+  statusEl.textContent = msg;
+  statusEl.className = 'status visible ' + kind;
+}
+
+// PRODUCT IMAGE PREVIEW
+document.getElementById('productImage').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    document.getElementById('previewImg').src = ev.target.result;
+    document.getElementById('previewStrip').style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+});
+
+// ----------------------------------------------------------
+// STEP 2A: CATEGORY SELECTION
+// ----------------------------------------------------------
+
+document.querySelectorAll('.category-card').forEach(card => {
+  card.addEventListener('click', () => {
+    selectedCategory = card.dataset.category;
+    selectedTemplateId = null;
+    activeSubcat = 'all';
+
+    document.querySelectorAll('.category-card').forEach(c =>
+      c.classList.toggle('selected', c === card));
+
+    const templateSection = document.getElementById('templateSection');
+    templateSection.style.display = 'block';
+    templateSection.scrollIntoView({behavior:'smooth'});
+
+    document.getElementById('templateHeading').textContent =
+      selectedCategory === 'library' ? '3 · Browse Prompt Library' : '3 · Choose a Template';
+
+    // Toggle subcategory filter
+    const subcatFilter = document.getElementById('subcategoryFilter');
+    subcatFilter.style.display = selectedCategory === 'library' ? 'flex' : 'none';
+
+    // Show/hide template cards by category
+    document.querySelectorAll('.tcard').forEach(c =>
+      c.style.display = (selectedCategory === 'curated') ? '' : 'none');
+    document.querySelectorAll('.libcard').forEach(c =>
+      c.style.display = (selectedCategory === 'library') ? '' : 'none');
+
+    // Reset subcategory filter buttons
+    document.querySelectorAll('.subcat-btn').forEach(b =>
+      b.classList.toggle('active', b.dataset.subcat === 'all'));
+
+    setStatus('Pick a template, or preview a prompt to see its full description.');
+    filterLibraryCards();
+  });
+});
+
+// ----------------------------------------------------------
+// STEP 2B: SUBCATEGORY FILTER (library only)
+// ----------------------------------------------------------
+
+document.querySelectorAll('.subcat-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    activeSubcat = btn.dataset.subcat;
+    document.querySelectorAll('.subcat-btn').forEach(b =>
+      b.classList.toggle('active', b.dataset.subcat === activeSubcat));
+    filterLibraryCards();
+  });
+});
+
+function filterLibraryCards(){
+  document.querySelectorAll('.libcard').forEach(card => {
+    if (selectedCategory !== 'library') { card.style.display = 'none'; return; }
+    const subcat = card.dataset.subcategory || '';
+    const matchSubcat = activeSubcat === 'all' || subcat === activeSubcat;
+    const searchMatch = searchQuery === '' || (
+      card.textContent.toLowerCase().includes(searchQuery));
+    card.style.display = (matchSubcat && searchMatch) ? '' : 'none';
+  });
+}
+
+// ----------------------------------------------------------
+// SEARCH
+// ----------------------------------------------------------
+
+let searchQuery = '';
+
+document.getElementById('libSearch')?.addEventListener('input', e => {
+  searchQuery = e.target.value.trim().toLowerCase();
+  filterBySearch();
+});
+
+function filterBySearch(){
+  document.querySelectorAll('.tcard').forEach(card => {
+    if (selectedCategory !== 'curated') { card.style.display = 'none'; return; }
+    const match = searchQuery === '' ||
+      card.textContent.toLowerCase().includes(searchQuery);
+    card.style.display = match ? '' : 'none';
+  });
+  filterLibraryCards();
+}
+
+// TEMPLATE SELECTION (curated cards + library cards, within chosen category)
+function selectTemplate(templateId){
+  if(!selectedCategory){
+    setStatus('Please choose a category first.', 'error');
+    return;
+  }
+  selectedTemplateId = templateId;
+  const isLibrary = TEMPLATES[templateId]?.origin === 'library';
+
+  document.querySelectorAll('.tcard').forEach(card =>
+    card.classList.toggle('selected', card.dataset.templateId === templateId));
+  document.querySelectorAll('.libcard').forEach(card =>
+    card.classList.toggle('selected', card.dataset.templateId === templateId));
+
+  const customize = document.getElementById('customizePanel');
+
+  if(isLibrary){
+    customize.classList.remove('visible');
+  }else{
+    const vars = TEMPLATES[templateId].variables || {};
+    for(const key of ['surface','lighting','background','composition']){
+      const input = document.getElementById('v_' + key);
+      if(input){ input.value = ''; input.placeholder = vars[key] || ''; }
+    }
+    customize.classList.add('visible');
+  }
+
+  setStatus('Selected: ' + TEMPLATES[templateId].name +
+            '. Upload your product image and press Generate.');
+}
+
+// LIBRARY SEARCH
+document.getElementById('libSearch')?.addEventListener('input', e => {
+  const q = e.target.value.trim().toLowerCase();
+  document.querySelectorAll('.libcard').forEach(card => {
+    const text = (card.textContent || '').toLowerCase();
+    card.style.display = (!q || text.includes(q)) ? '' : 'none';
+  });
+});
+
+function previewTemplate(templateId){
+  const t = TEMPLATES[templateId];
+  if(!t) return;
+
+  let promptText = t.promptTemplate;
+  for(const [k,v] of Object.entries(t.variables || {})){
+    promptText = promptText.split('{' + k + '}').join(v);
+  }
+
+  document.getElementById('modalTitle').textContent =
+    t.name + ' — resolved prompt';
+  document.getElementById('modalPrompt').textContent = promptText;
+
+  document.getElementById('modal').classList.add('visible');
+}
+
+function closeModal(){
+  document.getElementById('modal').classList.remove('visible');
+}
+
+document.getElementById('modal').addEventListener('click', e => {
+  if(e.target.id === 'modal') closeModal();
+});
+
+// GENERATION + POLLING (reuses the app's existing /status endpoint)
+async function poll(runId){
+
+  const pollOnce = async () => {
+
+    try{
+      const res = await fetch(`/status?run_id=${runId}`);
+      const data = await res.json();
+
+      if(data.status === 'completed'){
+
+        setStatus('✓ Advertisement generated successfully!', 'success');
+
+        const outputs = data.outputs || [];
+
+        if(outputs.length > 0){
+          const src = '/static/' + esc(outputs[0].filename);
+          document.getElementById('resultImg').src = src;
+          document.getElementById('downloadLink').href = src;
+          resultBox.classList.add('visible');
+          resultBox.scrollIntoView({behavior:'smooth'});
+        }
+
+        btn.disabled = false;
+        btn.textContent = '✨ Generate Another';
+        return;
+      }
+
+      if(data.status === 'error'){
+        setStatus('✗ Error: ' + (data.detail || 'unknown'), 'error');
+        btn.disabled = false;
+        return;
+      }
+
+      setStatus('⏳ Generation status: ' + (data.status || 'running'));
+      setTimeout(pollOnce, 3000);
+
+    }catch(err){
+      setStatus('Polling error: ' + err, 'error');
+      btn.disabled = false;
+    }
+  };
+
+  setTimeout(pollOnce, 1000);
+}
+
+btn.addEventListener('click', async () => {
+
+  const imageInput = document.getElementById('productImage');
+
+    if(!selectedCategory){
+    setStatus('Please choose a category and template first.', 'error');
+    return;
+  }
+
+  if(!selectedTemplateId){
+    setStatus('Please select a template first.', 'error');
+    return;
+  }
+
+  if(!imageInput.files[0]){
+    setStatus('Please upload your product image.', 'error');
+    return;
+  }
+
+  const form = new FormData();
+  form.append('templateId', selectedTemplateId);
+  form.append('productImage', imageInput.files[0]);
+
+  for(const key of ['surface','lighting','background','composition']){
+    form.append(key, document.getElementById('v_' + key).value.trim());
+  }
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Submitting...';
+  resultBox.classList.remove('visible');
+  setStatus('Submitting your product ad to the generation engine...');
+
+  try{
+    const res = await fetch('/api/ads/generate', { method:'POST', body:form });
+
+    let data;
+    try{ data = await res.json(); }
+    catch(e){ throw new Error('Unexpected server response (' + res.status + ')'); }
+
+    if(!res.ok || data.error){
+      throw new Error(data.error || ('Request failed (' + res.status + ')'));
+    }
+
+    setStatus('⏳ Job submitted. Generating your advertisement...');
+    poll(data.runId);
+
+  }catch(err){
+    setStatus('✗ ' + err.message, 'error');
+    btn.disabled = false;
+    btn.textContent = '✨ Generate Product Ad';
+  }
+});
+
+document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+  await fetch('/auth/logout', {method:'POST'});
+  window.location.href = '/';
+});
+</body>
+</html>

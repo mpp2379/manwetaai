@@ -1,0 +1,16 @@
+{
+  "id": "clean_premium_studio",
+  "categoryId": "product_ads",
+  "name": "Clean Premium Studio",
+  "description": "Clean modern commercial product shot with soft studio lighting and a premium minimal background.",
+  "thumbnail": "/static/templates/clean-premium-studio.jpg",
+  "promptTemplate": "Use the uploaded product image as the exact visual reference for the product.\n\nPreserve the product's original shape, proportions, colors, materials, logo, label, printed text, packaging and distinctive physical details.\nDo not redesign, deform, replace, duplicate or alter the product.\n\nCreate a clean premium commercial product advertisement.\n\nPlace the product in a modern minimal studio environment on {surface}. Use {lighting} and a {background}.\n\nCreate a polished product-focused composition with {composition}.\nUse realistic materials, accurate product geometry, soft natural shadows, controlled highlights, crisp edges and professional commercial product photography.\n\nThe product must remain sharp, recognizable and visually faithful to the uploaded reference.",
+  "variables": {
+    "surface": "clean matte studio surface",
+    "lighting": "soft diffused studio lighting",
+    "background": "bright neutral gradient background",
+    "composition": "a clean centered hero composition with generous negative space"
+  },
+  "modelProfileId": "qwen_product_quality",
+  "enabled": true
+}
